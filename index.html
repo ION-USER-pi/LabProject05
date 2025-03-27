@@ -28,7 +28,7 @@
             padding: 30px;
             box-shadow: 0 15px 25px rgba(0,0,0,0.5);
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
             text-align: center;
         }
 
@@ -55,6 +55,8 @@
 
         input {
             flex-grow: 1;
+            text-overflow: ellipsis;
+            min-width: 0; /* Fixes flexbox overflow issue */
         }
 
         button {
@@ -74,6 +76,7 @@
             border-radius: 10px;
             margin-top: 20px;
             min-height: 50px;
+            word-wrap: break-word;
         }
 
         @media (max-width: 600px) {
@@ -85,20 +88,34 @@
                 margin: 5px 0;
                 width: 100%;
             }
+
+            input::placeholder {
+                font-size: 0.8em;
+            }
+
+            .container {
+                padding: 15px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔮 Sorting Sorcery 🔮</h1>
+        <h1>🔮 Universal Sorting Sorcery 🔮</h1>
         
         <div class="input-group">
-            <input type="text" id="numberInput" placeholder="Enter numbers, comma-separated">
+            <input type="text" id="inputData" placeholder="Enter comma-separated items">
             <select id="sortType">
                 <option value="asc">Ascending</option>
                 <option value="desc">Descending</option>
             </select>
-            <button onclick="sortNumbers()">
+            <select id="dataType">
+                <option value="auto">Auto Detect</option>
+                <option value="number">Numbers</option>
+                <option value="string">Words</option>
+                <option value="date">Dates</option>
+            </select>
+            <button onclick="sortData()">
                 <i class="fas fa-magic"></i> Sort
             </button>
         </div>
@@ -109,40 +126,83 @@
     </div>
 
     <script>
-        function sortNumbers() {
-            // Get input and convert to array
-            const input = $('#numberInput').val();
-            const sortType = $('#sortType').val();
-            
-            // Split and convert to numbers, removing any non-numeric entries
-            const numbers = input.split(',')
-                .map(num => parseFloat(num.trim()))
-                .filter(num => !isNaN(num));
+        function detectDataType(items) {
+            // Check if all items are valid numbers
+            const numberTest = items.every(item => !isNaN(parseFloat(item)));
+            if (numberTest) return 'number';
 
-            if (numbers.length === 0) {
-                $('#result').html('<i class="fas fa-exclamation-triangle"></i> No valid numbers found!');
+            // Check if all items look like dates
+            const dateTest = items.every(item => {
+                const date = new Date(item);
+                return !isNaN(date.getTime());
+            });
+            if (dateTest) return 'date';
+
+            // Default to string
+            return 'string';
+        }
+
+        function sortData() {
+            // Get input and convert to array
+            const input = $('#inputData').val();
+            const sortType = $('#sortType').val();
+            const dataType = $('#dataType').val();
+            
+            // Split input
+            const items = input.split(',')
+                .map(item => item.trim())
+                .filter(item => item !== '');
+
+            if (items.length === 0) {
+                $('#result').html('<i class="fas fa-exclamation-triangle"></i> No valid items found!');
                 return;
             }
 
-            // Custom sorting function
-            const sortedNumbers = numbers.sort((a, b) => 
-                sortType === 'asc' ? a - b : b - a
-            );
+            // Determine data type if auto detect is selected
+            const type = dataType === 'auto' ? detectDataType(items) : dataType;
 
-            // Animate and display result
-            $('#result').hide()
-                .html(`
-                    <i class="fas fa-wand-magic-sparkles"></i> 
-                    Sorted Numbers: ${sortedNumbers.join(' ✨ ')}
-                `)
-                .fadeIn(500);
+            let sortedItems;
+            try {
+                switch(type) {
+                    case 'number':
+                        sortedItems = items
+                            .map(parseFloat)
+                            .sort((a, b) => sortType === 'asc' ? a - b : b - a);
+                        break;
+                    case 'date':
+                        sortedItems = items
+                            .map(item => new Date(item))
+                            .sort((a, b) => sortType === 'asc' ? a - b : b - a);
+                        break;
+                    default: // string
+                        sortedItems = items
+                            .sort((a, b) => 
+                                sortType === 'asc' 
+                                    ? a.localeCompare(b) 
+                                    : b.localeCompare(a)
+                            );
+                }
+
+                // Animate and display result
+                $('#result').hide()
+                    .html(`
+                        <i class="fas fa-wand-magic-sparkles"></i> 
+                        Sorted (${type}): ${sortedItems.join(' ✨ ')}
+                    `)
+                    .fadeIn(500);
+            } catch (error) {
+                $('#result').html(`
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    Error sorting: ${error.message}
+                `);
+            }
         }
 
         // Add some interactivity
         $(document).ready(function() {
-            $('#numberInput').on('keypress', function(e) {
+            $('#inputData').on('keypress', function(e) {
                 if (e.which === 13) { // Enter key
-                    sortNumbers();
+                    sortData();
                 }
             });
         });
