@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>labproject05</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(45deg, #1a1a2e, #16213e);
+            color: #e94560;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background: rgba(30, 30, 60, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 25px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #0f3460;
+            text-shadow: 0 0 10px #e94560;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        input, select, button {
+            padding: 10px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 5px;
+            background: #0f3460;
+            color: #e94560;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        input {
+            flex-grow: 1;
+        }
+
+        button {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            background: #e94560;
+            color: #0f3460;
+        }
+
+        #result {
+            background: rgba(15, 52, 96, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            min-height: 50px;
+        }
+
+        @media (max-width: 600px) {
+            .input-group {
+                flex-direction: column;
+            }
+            
+            input, select, button {
+                margin: 5px 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔮 Sorting Sorcery 🔮</h1>
+        
+        <div class="input-group">
+            <input type="text" id="numberInput" placeholder="Enter numbers, comma-separated">
+            <select id="sortType">
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+            </select>
+            <button onclick="sortNumbers()">
+                <i class="fas fa-magic"></i> Sort
+            </button>
+        </div>
+
+        <div id="result">
+            Your sorted magic will appear here...
+        </div>
+    </div>
+
+    <script>
+        function sortNumbers() {
+            // Get input and convert to array
+            const input = $('#numberInput').val();
+            const sortType = $('#sortType').val();
+            
+            // Split and convert to numbers, removing any non-numeric entries
+            const numbers = input.split(',')
+                .map(num => parseFloat(num.trim()))
+                .filter(num => !isNaN(num));
+
+            if (numbers.length === 0) {
+                $('#result').html('<i class="fas fa-exclamation-triangle"></i> No valid numbers found!');
+                return;
+            }
+
+            // Custom sorting function
+            const sortedNumbers = numbers.sort((a, b) => 
+                sortType === 'asc' ? a - b : b - a
+            );
+
+            // Animate and display result
+            $('#result').hide()
+                .html(`
+                    <i class="fas fa-wand-magic-sparkles"></i> 
+                    Sorted Numbers: ${sortedNumbers.join(' ✨ ')}
+                `)
+                .fadeIn(500);
+        }
+
+        // Add some interactivity
+        $(document).ready(function() {
+            $('#numberInput').on('keypress', function(e) {
+                if (e.which === 13) { // Enter key
+                    sortNumbers();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
